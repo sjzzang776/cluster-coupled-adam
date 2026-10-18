@@ -1,0 +1,5 @@
+vwarm 2020 --optimizer cluster --alpha 1.0 --mix_mode vshare --alpha_n0 20 --alpha_freq_dir warm
+vwarm100 2020 --optimizer cluster --alpha 1.0 --mix_mode vshare --alpha_n0 100 --alpha_freq_dir warm
+vhalf 2020 --optimizer cluster --alpha 0.5 --mix_mode vshare
+vwarm 2021 --optimizer cluster --alpha 1.0 --mix_mode vshare --alpha_n0 20 --alpha_freq_dir warm
+vwarm100 2021 --optimizer cluster --alpha 1.0 --mix_mode vshare --alpha_n0 100 --alpha_freq_dir warm

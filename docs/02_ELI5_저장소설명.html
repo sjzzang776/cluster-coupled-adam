@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CCA 옵티마이저 ELI5</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#ffffff; --ink:#1f2937; --sub:#6b7280; --line:#e5e7eb;
+          --me:#2563eb; --crowd:#f59e0b; --mix:#16a34a; --warn:#dc2626; --soft:#eef2ff; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#111418; --card:#1b2027; --ink:#e5e7eb; --sub:#9ca3af; --line:#2d333b;
+          --me:#60a5fa; --crowd:#fbbf24; --mix:#4ade80; --warn:#f87171; --soft:#1e2433; }
+  }
+  :root[data-theme="dark"] { --bg:#111418; --card:#1b2027; --ink:#e5e7eb; --sub:#9ca3af; --line:#2d333b;
+          --me:#60a5fa; --crowd:#fbbf24; --mix:#4ade80; --warn:#f87171; --soft:#1e2433; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font-family:"Pretendard","Noto Sans KR","Malgun Gothic",system-ui,sans-serif; }
+  main { max-width: 920px; margin: 0 auto; padding: 24px 16px 64px; }
+  header h1 { font-size: clamp(28px, 6vw, 44px); margin: 8px 0 4px; line-height:1.2; }
+  header p { color: var(--sub); font-size: 18px; margin: 0; }
+  .scene { background: var(--card); border:1px solid var(--line); border-radius: 18px;
+           padding: 20px; margin: 22px 0; }
+  .num { display:inline-block; font-weight:800; color:var(--sub); font-size:14px; letter-spacing:2px; }
+  .scene h2 { font-size: clamp(22px, 4.6vw, 32px); margin: 4px 0 6px; }
+  .scene p.one { font-size: 18px; color: var(--sub); margin: 0 0 12px; }
+  svg { width: 100%; height: auto; display:block; }
+  svg text { font-family: "Malgun Gothic", "Noto Sans KR", sans-serif; fill: var(--ink); }
+  .map { display:grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 12px; }
+  .part { border:1px solid var(--line); border-radius: 14px; padding: 14px; background: var(--soft); }
+  .part .emo { font-size: 34px; }
+  .part b { display:block; font-size: 18px; margin-top: 4px; }
+  .part code, code { font-family: "JetBrains Mono", Consolas, monospace; font-size: 14px; }
+  .part span { color: var(--sub); font-size: 15px; }
+  pre { font-family: Consolas, "JetBrains Mono", monospace; background: #0f172a; color:#e2e8f0; padding: 14px; border-radius: 12px; overflow-x:auto; font-size:14px; }
+  .warn { border-left: 5px solid var(--warn); padding: 8px 12px; margin: 8px 0; }
+  .tag { display:inline-block; padding:2px 10px; border-radius:999px; font-size:14px; font-weight:700; }
+  footer { color: var(--sub); font-size: 13px; text-align:center; margin-top: 30px; }
+@media print{@page{size:A4;margin:10mm}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}section.scene{break-inside:avoid;page-break-inside:avoid}pre{white-space:pre-wrap;word-break:break-all}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>비슷한 점끼리<br>같이 걷게 하는 학습 규칙</h1>
+  <p>25-fall-recommender · Cluster-Coupled Adam(CCA)을 그림으로</p>
+</header>
+
+<!-- 1 -->
+<section class="scene">
+  <span class="num">01 · 먼저 알아 둘 것</span>
+  <h2>추천 모델 = 지도 위의 점들</h2>
+  <p class="one">사람과 장소가 모두 지도 위의 점이에요. 가까우면 "좋아할 것 같다".</p>
+  <svg viewBox="0 0 800 300" role="img" aria-label="사람 점과 장소 점이 지도 위에 흩어져 있고 가까운 쌍이 추천된다">
+    <rect x="10" y="10" width="780" height="280" rx="18" fill="var(--soft)"/>
+    <g font-size="34">
+      <text x="120" y="110">🧑</text><text x="190" y="150">📍</text>
+      <text x="520" y="90">👩</text><text x="580" y="120">📍</text>
+      <text x="330" y="230">🧒</text><text x="660" y="240">📍</text>
+    </g>
+    <line x1="160" y1="105" x2="195" y2="130" stroke="var(--mix)" stroke-width="5" stroke-dasharray="7 6"/>
+    <line x1="560" y1="85" x2="585" y2="100" stroke="var(--mix)" stroke-width="5" stroke-dasharray="7 6"/>
+    <text x="40" y="270" font-size="20" fill="var(--sub)">점의 좌표 = 임베딩 · 사람 29,858명, 장소 40,981곳 (Gowalla)</text>
+  </svg>
+</section>
+
+<!-- 2 -->
+<section class="scene">
+  <span class="num">02 · 학습이란</span>
+  <h2>점이 조금씩 걸어가는 것</h2>
+  <p class="one">틀릴 때마다 점을 살짝 옮겨요. 한 걸음을 정하는 규칙이 <b>옵티마이저</b>.</p>
+  <svg viewBox="0 0 800 220" role="img" aria-label="점이 여러 걸음에 걸쳐 목표 장소로 다가간다">
+    <g font-size="34"><text x="60" y="130">🧑</text><text x="690" y="130">📍</text></g>
+    <g fill="var(--me)">
+      <circle cx="210" cy="120" r="9"/><circle cx="340" cy="120" r="9"/><circle cx="460" cy="120" r="9"/><circle cx="570" cy="120" r="9"/>
+    </g>
+    <path d="M110 120 H660" stroke="var(--me)" stroke-width="4" stroke-dasharray="4 12" fill="none"/>
+    <text x="210" y="185" font-size="20" fill="var(--sub)">한 걸음, 한 걸음… (Adam이 가장 흔한 규칙)</text>
+  </svg>
+</section>
+
+<!-- 3 -->
+<section class="scene">
+  <span class="num">03 · 핵심 아이디어</span>
+  <h2>혼자 걷지 말고, 무리의 방향도 듣기</h2>
+  <p class="one">비슷한 점끼리 무리를 짓고, 내 화살표에 무리 평균 화살표를 조금 섞어요.</p>
+  <svg viewBox="0 0 800 330" role="img" aria-label="왼쪽은 각자 다른 방향으로 걷는 점들, 오른쪽은 내 방향과 무리 방향을 섞은 화살표">
+    <defs>
+      <marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--me)"/></marker>
+      <marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--crowd)"/></marker>
+      <marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--mix)"/></marker>
+    </defs>
+    <text x="40" y="40" font-size="22" font-weight="700">기존 Adam: 각자</text>
+    <g>
+      <circle cx="110" cy="150" r="12" fill="var(--me)"/><line x1="110" y1="150" x2="170" y2="95" stroke="var(--me)" stroke-width="5" marker-end="url(#a1)"/>
+      <circle cx="160" cy="210" r="12" fill="var(--me)"/><line x1="160" y1="210" x2="230" y2="240" stroke="var(--me)" stroke-width="5" marker-end="url(#a1)"/>
+      <circle cx="230" cy="150" r="12" fill="var(--me)"/><line x1="230" y1="150" x2="290" y2="140" stroke="var(--me)" stroke-width="5" marker-end="url(#a1)"/>
+    </g>
+    <line x1="380" y1="30" x2="380" y2="300" stroke="var(--line)" stroke-width="3"/>
+    <text x="420" y="40" font-size="22" font-weight="700">CCA: 나 + 무리</text>
+    <ellipse cx="560" cy="170" rx="120" ry="85" fill="none" stroke="var(--crowd)" stroke-width="3" stroke-dasharray="8 6"/>
+    <circle cx="500" cy="170" r="14" fill="var(--me)"/>
+    <line x1="500" y1="170" x2="570" y2="105" stroke="var(--me)" stroke-width="5" marker-end="url(#a1)"/>
+    <line x1="500" y1="170" x2="600" y2="170" stroke="var(--crowd)" stroke-width="5" marker-end="url(#a2)"/>
+    <line x1="500" y1="170" x2="590" y2="135" stroke="var(--mix)" stroke-width="7" marker-end="url(#a3)"/>
+    <circle cx="610" cy="225" r="10" fill="var(--me)" opacity=".6"/><circle cx="560" cy="120" r="10" fill="var(--me)" opacity=".6"/>
+    <text x="400" y="300" font-size="17"><tspan fill="var(--me)">내 방향</tspan> × (1−α) + <tspan fill="var(--crowd)">무리 평균</tspan> × α = <tspan fill="var(--mix)">실제 걸음</tspan></text>
+  </svg>
+</section>
+
+<!-- 4 -->
+<section class="scene">
+  <span class="num">04 · 언제, 누구와</span>
+  <h2>세 가지 안전장치</h2>
+  <p class="one">처음엔 혼자 걷고, 무리는 가끔 다시 짓고, 이번에 안 움직인 점은 건드리지 않아요.</p>
+  <svg viewBox="0 0 800 260" role="img" aria-label="시간 축 위에 혼자 걷기 구간, 무리 다시 짓기 시점, 움직인 점만 섞기">
+    <line x1="40" y1="120" x2="770" y2="120" stroke="var(--line)" stroke-width="6"/>
+    <rect x="40" y="95" width="230" height="50" rx="10" fill="var(--me)" opacity=".85"/>
+    <text x="60" y="128" font-size="20" fill="#fff" font-weight="700">① 혼자 걷기 (burn-in)</text>
+    <g fill="var(--crowd)"><polygon points="330,85 342,105 318,105"/><polygon points="460,85 472,105 448,105"/><polygon points="590,85 602,105 578,105"/><polygon points="720,85 732,105 708,105"/></g>
+    <text x="330" y="70" font-size="18">② 128걸음마다 무리 다시 짓기</text>
+    <text x="40" y="190" font-size="18" fill="var(--sub)">처음 1024걸음 ≈ 5에폭은 그냥 Adam</text>
+    <g transform="translate(470,160)">
+      <circle cx="20" cy="30" r="12" fill="var(--mix)"/><circle cx="60" cy="30" r="12" fill="var(--mix)"/>
+      <circle cx="100" cy="30" r="12" fill="var(--line)"/><circle cx="140" cy="30" r="12" fill="var(--line)"/>
+      <text x="170" y="38" font-size="18">③ 움직인 점만 섞기</text>
+    </g>
+  </svg>
+  <p class="one" style="margin-top:6px">무리 짓는 기준은 "최근 걸어온 방향의 평균"(EMA gradient), 무리 수는 처음 한 번 Elbow로 정해요.</p>
+</section>
+
+<!-- 5 -->
+<section class="scene">
+  <span class="num">05 · 부품 지도</span>
+  <h2>파일마다 맡은 역할</h2>
+  <div class="map">
+    <div class="part"><div class="emo">🎬</div><b><code>main.py</code></b><span>지휘자. 에폭마다 학습 → 채점 → 기록</span></div>
+    <div class="part"><div class="emo">⚙️</div><b><code>parse.py · world.py</code></b><span>설정판. 옵티마이저, α, 무리 수, 걸음 간격</span></div>
+    <div class="part"><div class="emo">🗺️</div><b><code>dataloader.py</code></b><span>지도 펴기. 누가 어디를 갔는지 그래프로</span></div>
+    <div class="part"><div class="emo">🧭</div><b><code>model.py</code></b><span>LightGCN. 이웃 좌표를 평균해 점의 위치 계산</span></div>
+    <div class="part" style="outline:3px solid var(--mix)"><div class="emo">👣</div><b><code>optimizers.py</code></b><span>★ 걸음 규칙. 무리 짓기 + 섞기 + Adam</span></div>
+    <div class="part"><div class="emo">📝</div><b><code>Procedure.py · utils.py</code></b><span>채점표. Precision·Recall·NDCG, CSV 성적표</span></div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="scene">
+  <span class="num">06 · 그래서 됐어?</span>
+  <h2>결승선은 Adam과 비슷</h2>
+  <p class="one">끝 점수는 Adam과 비슷했어요. 발표 그래프의 "초반에 더 빠름"은 다시 돌려 보니 재현되지 않았어요.</p>
+  <svg viewBox="0 0 800 280" role="img" aria-label="손실 곡선 두 개, CCA가 초반에 더 빨리 내려가고 후반엔 겹친다">
+    <line x1="70" y1="30" x2="70" y2="230" stroke="var(--sub)" stroke-width="2"/>
+    <line x1="70" y1="230" x2="760" y2="230" stroke="var(--sub)" stroke-width="2"/>
+    <text x="20" y="40" font-size="16" fill="var(--sub)">손실</text><text x="690" y="260" font-size="16" fill="var(--sub)">학습 →</text>
+    <path d="M80 50 C 150 55, 190 150, 280 196 C 360 214, 520 218, 750 218" fill="none" stroke="var(--me)" stroke-width="6"/>
+    <path d="M80 50 C 150 55, 190 150, 280 196 C 362 206, 522 207, 750 207" fill="none" stroke="var(--mix)" stroke-width="6" stroke-dasharray="1 0"/>
+    <text x="300" y="120" font-size="20" fill="var(--me)">Adam</text>
+    <text x="540" y="196" font-size="18" fill="var(--mix)">CCA (다시 돌린 결과, 살짝 높음)</text>
+    <text x="560" y="150" font-size="18" fill="var(--sub)">끝은 거의 같음</text>
+  </svg>
+  <p class="warn">⚠️ 다시 돌려 보니(노트북 설정, 10에폭) 처음 약 5에폭은 CCA도 그냥 Adam(①)이라 두 곡선이 겹쳤고, 그 뒤엔 CCA가 살짝 낮았어요(Recall 0.1203 vs 0.1218).</p>
+</section>
+
+<!-- 7 -->
+<section class="scene">
+  <span class="num">07 · 직접 해 보기</span>
+  <h2>이 순서로 열어 보세요</h2>
+  <p class="one">1) <code>README.md</code> → 2) <code>code/optimizers.py</code>의 <code>ClusterCoupledAdam.step</code> → 3) <code>code/utils.py</code>의 <code>BPRLoss</code></p>
+<pre>cd code        # ← 꼭 code 폴더 안에서! (데이터 경로가 ../data)
+python main.py --dataset gowalla --model lgn --recdim 32 --layer 1 \
+  --epochs 10 --bpr_batch 4096 --testbatch 512 \
+  --optimizer cluster --alpha 0.25 --num_clusters 64 \
+  --recluster_interval 128 --cluster_warmup 1024
+# 비교: --optimizer adam   ·   결과: code/runs/*.csv</pre>
+  <p class="warn">✅ HR@20(추천 20개 안에 정답이 하나라도 든 사람의 비율)은 계산 오류를 고쳐 다시 돌렸어요: Adam 0.463, CCA 0.458 (10에폭).</p>
+</section>
+
+<footer>ELI5 · 큰 그림, 적은 글 · 출처: 팀 저장소 코드와 발표 자료(5조) · 내 역할: 실험·하이퍼파라미터 분석·수식 검증</footer>
+</main>
+</body>
+</html>

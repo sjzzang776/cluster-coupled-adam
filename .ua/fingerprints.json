@@ -1,0 +1,1098 @@
+{
+ "version": "1.0.0",
+ "gitCommitHash": "5c6a24f2bc89c03f2b14eb93576ef71cec5e6d01",
+ "generatedAt": "2026-10-18T04:56:30.918Z",
+ "files": {
+  "README.md": {
+   "filePath": "README.md",
+   "contentHash": "55e74d77be58d23f28455daa2589b308bdbf968eada84eb649a353417796d8ec",
+   "functions": [],
+   "classes": [],
+   "imports": [],
+   "exports": [],
+   "totalLines": 42,
+   "hasStructuralAnalysis": false
+  },
+  "code/Procedure.py": {
+   "filePath": "code/Procedure.py",
+   "contentHash": "e3769e0eb558b062bec6b9dd8a6d41249ce414d2f88971d1640bd50f32b1dcd5",
+   "functions": [
+    {
+     "name": "BPR_train_original",
+     "params": [
+      "dataset",
+      "recommend_model",
+      "loss_class",
+      "epoch",
+      "neg_k",
+      "w"
+     ],
+     "exported": true,
+     "lineCount": 32
+    },
+    {
+     "name": "test_one_batch",
+     "params": [
+      "X"
+     ],
+     "exported": true,
+     "lineCount": 16
+    },
+    {
+     "name": "Test",
+     "params": [
+      "dataset",
+      "Recmodel",
+      "epoch",
+      "w",
+      "multicore"
+     ],
+     "exported": true,
+     "lineCount": 111
+    }
+   ],
+   "classes": [],
+   "imports": [
+    {
+     "source": "world",
+     "specifiers": [
+      "world"
+     ]
+    },
+    {
+     "source": "numpy",
+     "specifiers": [
+      "np"
+     ]
+    },
+    {
+     "source": "torch",
+     "specifiers": [
+      "torch"
+     ]
+    },
+    {
+     "source": "utils",
+     "specifiers": [
+      "utils"
+     ]
+    },
+    {
+     "source": "dataloader",
+     "specifiers": [
+      "dataloader"
+     ]
+    },
+    {
+     "source": "pprint",
+     "specifiers": [
+      "pprint"
+     ]
+    },
+    {
+     "source": "utils",
+     "specifiers": [
+      "timer"
+     ]
+    },
+    {
+     "source": "time",
+     "specifiers": [
+      "time"
+     ]
+    },
+    {
+     "source": "tqdm",
+     "specifiers": [
+      "tqdm"
+     ]
+    },
+    {
+     "source": "model",
+     "specifiers": [
+      "model"
+     ]
+    },
+    {
+     "source": "multiprocessing",
+     "specifiers": [
+      "multiprocessing"
+     ]
+    },
+    {
+     "source": "sklearn.metrics",
+     "specifiers": [
+      "roc_auc_score"
+     ]
+    }
+   ],
+   "exports": [
+    "BPR_train_original",
+    "test_one_batch",
+    "Test"
+   ],
+   "totalLines": 191,
+   "hasStructuralAnalysis": true
+  },
+  "code/dataloader.py": {
+   "filePath": "code/dataloader.py",
+   "contentHash": "dc67e29fc8aabae0fd9f4dc618da0522009aa896fbe71e1a00e4a6f0591d4f47",
+   "functions": [],
+   "classes": [
+    {
+     "name": "BasicDataset",
+     "methods": [
+      "__init__",
+      "n_users",
+      "m_items",
+      "trainDataSize",
+      "testDict",
+      "allPos",
+      "getUserItemFeedback",
+      "getUserPosItems",
+      "getUserNegItems",
+      "getSparseGraph"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 46
+    },
+    {
+     "name": "LastFM",
+     "methods": [
+      "__init__",
+      "n_users",
+      "m_items",
+      "trainDataSize",
+      "testDict",
+      "allPos",
+      "getSparseGraph",
+      "__build_test",
+      "getUserItemFeedback",
+      "getUserPosItems",
+      "getUserNegItems",
+      "__getitem__",
+      "switch2test",
+      "__len__"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 146
+    },
+    {
+     "name": "Loader",
+     "methods": [
+      "__init__",
+      "n_users",
+      "m_items",
+      "trainDataSize",
+      "testDict",
+      "allPos",
+      "_split_A_hat",
+      "_convert_sp_mat_to_sp_tensor",
+      "getSparseGraph",
+      "__build_test",
+      "getUserItemFeedback",
+      "getUserPosItems"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 193
+    }
+   ],
+   "imports": [
+    {
+     "source": "os",
+     "specifiers": [
+      "os"
+     ]
+    },
+    {
+     "source": "os.path",
+     "specifiers": [
+      "join"
+     ]
+    },
+    {
+     "source": "sys",
+     "specifiers": [
+      "sys"
+     ]
+    },
+    {
+     "source": "torch",
+     "specifiers": [
+      "torch"
+     ]
+    },
+    {
+     "source": "numpy",
+     "specifiers": [
+      "np"
+     ]
+    },
+    {
+     "source": "pandas",
+     "specifiers": [
+      "pd"
+     ]
+    },
+    {
+     "source": "torch.utils.data",
+     "specifiers": [
+      "Dataset",
+      "DataLoader"
+     ]
+    },
+    {
+     "source": "scipy.sparse",
+     "specifiers": [
+      "csr_matrix"
+     ]
+    },
+    {
+     "source": "scipy.sparse",
+     "specifiers": [
+      "sp"
+     ]
+    },
+    {
+     "source": "world",
+     "specifiers": [
+      "world"
+     ]
+    },
+    {
+     "source": "world",
+     "specifiers": [
+      "cprint"
+     ]
+    },
+    {
+     "source": "time",
+     "specifiers": [
+      "time"
+     ]
+    }
+   ],
+   "exports": [
+    "BasicDataset",
+    "LastFM",
+    "Loader"
+   ],
+   "totalLines": 410,
+   "hasStructuralAnalysis": true
+  },
+  "code/main.py": {
+   "filePath": "code/main.py",
+   "contentHash": "09c5b4c866311ad998101a4d08a155e4b260178db317ee13bff4187f6ef0d6b4",
+   "functions": [],
+   "classes": [],
+   "imports": [
+    {
+     "source": "world",
+     "specifiers": [
+      "world"
+     ]
+    },
+    {
+     "source": "utils",
+     "specifiers": [
+      "utils"
+     ]
+    },
+    {
+     "source": "world",
+     "specifiers": [
+      "cprint"
+     ]
+    },
+    {
+     "source": "torch",
+     "specifiers": [
+      "torch"
+     ]
+    },
+    {
+     "source": "numpy",
+     "specifiers": [
+      "np"
+     ]
+    },
+    {
+     "source": "tensorboardX",
+     "specifiers": [
+      "SummaryWriter"
+     ]
+    },
+    {
+     "source": "time",
+     "specifiers": [
+      "time"
+     ]
+    },
+    {
+     "source": "Procedure",
+     "specifiers": [
+      "Procedure"
+     ]
+    },
+    {
+     "source": "os.path",
+     "specifiers": [
+      "join"
+     ]
+    },
+    {
+     "source": "register",
+     "specifiers": [
+      "register"
+     ]
+    },
+    {
+     "source": "register",
+     "specifiers": [
+      "dataset"
+     ]
+    }
+   ],
+   "exports": [],
+   "totalLines": 63,
+   "hasStructuralAnalysis": true
+  },
+  "code/model.py": {
+   "filePath": "code/model.py",
+   "contentHash": "987351a5071065cddc4acda8fdaeda127a5e180a8716cf63132bf76c34dde32e",
+   "functions": [],
+   "classes": [
+    {
+     "name": "BasicModel",
+     "methods": [
+      "__init__",
+      "getUsersRating"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 6
+    },
+    {
+     "name": "PairWiseModel",
+     "methods": [
+      "__init__",
+      "bpr_loss"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 13
+    },
+    {
+     "name": "PureMF",
+     "methods": [
+      "__init__",
+      "__init_weight",
+      "getUsersRating",
+      "bpr_loss",
+      "forward"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 44
+    },
+    {
+     "name": "LightGCN",
+     "methods": [
+      "__init__",
+      "__init_weight",
+      "__dropout_x",
+      "__dropout",
+      "computer",
+      "getUsersRating",
+      "getEmbedding",
+      "bpr_loss",
+      "forward"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 133
+    }
+   ],
+   "imports": [
+    {
+     "source": "world",
+     "specifiers": [
+      "world"
+     ]
+    },
+    {
+     "source": "torch",
+     "specifiers": [
+      "torch"
+     ]
+    },
+    {
+     "source": "dataloader",
+     "specifiers": [
+      "BasicDataset"
+     ]
+    },
+    {
+     "source": "torch",
+     "specifiers": [
+      "nn"
+     ]
+    },
+    {
+     "source": "numpy",
+     "specifiers": [
+      "np"
+     ]
+    }
+   ],
+   "exports": [
+    "BasicModel",
+    "PairWiseModel",
+    "PureMF",
+    "LightGCN"
+   ],
+   "totalLines": 216,
+   "hasStructuralAnalysis": true
+  },
+  "code/optimizers.py": {
+   "filePath": "code/optimizers.py",
+   "contentHash": "30219edb0a8ecb206a3dc31e268edcf3b82a1539cf682fd63f7566a3ef213334",
+   "functions": [],
+   "classes": [
+    {
+     "name": "ClusterCoupledAdam",
+     "methods": [
+      "__init__",
+      "_find_best_k_elbow",
+      "_update_clusters",
+      "step"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 247
+    },
+    {
+     "name": "ClusterCoupledSGD",
+     "methods": [
+      "__init__",
+      "_update_clusters",
+      "step"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 101
+    },
+    {
+     "name": "ClusterCoupledRMSProp",
+     "methods": [
+      "__init__",
+      "_update_clusters",
+      "step"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 113
+    },
+    {
+     "name": "Lamb",
+     "methods": [
+      "__init__",
+      "step"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 88
+    }
+   ],
+   "imports": [
+    {
+     "source": "math",
+     "specifiers": [
+      "math"
+     ]
+    },
+    {
+     "source": "typing",
+     "specifiers": [
+      "Optional"
+     ]
+    },
+    {
+     "source": "numpy",
+     "specifiers": [
+      "np"
+     ]
+    },
+    {
+     "source": "torch",
+     "specifiers": [
+      "torch"
+     ]
+    },
+    {
+     "source": "sklearn.cluster",
+     "specifiers": [
+      "KMeans"
+     ]
+    },
+    {
+     "source": "torch.optim",
+     "specifiers": [
+      "Optimizer"
+     ]
+    }
+   ],
+   "exports": [
+    "ClusterCoupledAdam",
+    "ClusterCoupledSGD",
+    "ClusterCoupledRMSProp",
+    "Lamb"
+   ],
+   "totalLines": 561,
+   "hasStructuralAnalysis": true
+  },
+  "code/parse.py": {
+   "filePath": "code/parse.py",
+   "contentHash": "c88b7791eda4b8a5c9b771c8b7e93f14d0a6bc50c47f65333417be8572b175d9",
+   "functions": [
+    {
+     "name": "parse_args",
+     "params": [],
+     "exported": true,
+     "lineCount": 75
+    }
+   ],
+   "classes": [],
+   "imports": [
+    {
+     "source": "argparse",
+     "specifiers": [
+      "argparse"
+     ]
+    }
+   ],
+   "exports": [
+    "parse_args"
+   ],
+   "totalLines": 86,
+   "hasStructuralAnalysis": true
+  },
+  "code/register.py": {
+   "filePath": "code/register.py",
+   "contentHash": "e39838b52c847349dca9d3e991dfc8bc33194ca38600a59c3ff60dd87e5b76b0",
+   "functions": [],
+   "classes": [],
+   "imports": [
+    {
+     "source": "world",
+     "specifiers": [
+      "world"
+     ]
+    },
+    {
+     "source": "dataloader",
+     "specifiers": [
+      "dataloader"
+     ]
+    },
+    {
+     "source": "model",
+     "specifiers": [
+      "model"
+     ]
+    },
+    {
+     "source": "utils",
+     "specifiers": [
+      "utils"
+     ]
+    },
+    {
+     "source": "pprint",
+     "specifiers": [
+      "pprint"
+     ]
+    }
+   ],
+   "exports": [],
+   "totalLines": 26,
+   "hasStructuralAnalysis": true
+  },
+  "code/sources/sampling.cpp": {
+   "filePath": "code/sources/sampling.cpp",
+   "contentHash": "d21935bff6b25caa6c8a66343f20992a055e9d6d4b3adc80e425e6b5ef9f3277",
+   "functions": [
+    {
+     "name": "randint_",
+     "owner": "",
+     "params": [
+      "end"
+     ],
+     "returnType": "int",
+     "exported": true,
+     "lineCount": 4
+    },
+    {
+     "name": "sample_negative",
+     "owner": "",
+     "params": [
+      "user_num",
+      "item_num",
+      "train_num",
+      "allPos",
+      "neg_num"
+     ],
+     "returnType": "py::array_t<int>",
+     "exported": true,
+     "lineCount": 30
+    },
+    {
+     "name": "sample_negative_ByUser",
+     "owner": "",
+     "params": [
+      "users",
+      "item_num",
+      "allPos",
+      "neg_num"
+     ],
+     "returnType": "py::array_t<int>",
+     "exported": true,
+     "lineCount": 29
+    },
+    {
+     "name": "set_seed",
+     "owner": "",
+     "params": [
+      "seed"
+     ],
+     "returnType": "void",
+     "exported": true,
+     "lineCount": 4
+    },
+    {
+     "name": "PYBIND11_MODULE",
+     "owner": "",
+     "params": [],
+     "exported": true,
+     "lineCount": 12
+    }
+   ],
+   "classes": [],
+   "imports": [
+    {
+     "source": "pybind11/pybind11.h",
+     "specifiers": [
+      "pybind11/pybind11.h"
+     ]
+    },
+    {
+     "source": "pybind11/stl.h",
+     "specifiers": [
+      "pybind11/stl.h"
+     ]
+    },
+    {
+     "source": "pybind11/numpy.h",
+     "specifiers": [
+      "pybind11/numpy.h"
+     ]
+    },
+    {
+     "source": "iostream",
+     "specifiers": [
+      "iostream"
+     ]
+    },
+    {
+     "source": "random",
+     "specifiers": [
+      "random"
+     ]
+    },
+    {
+     "source": "algorithm",
+     "specifiers": [
+      "algorithm"
+     ]
+    },
+    {
+     "source": "time.h",
+     "specifiers": [
+      "time.h"
+     ]
+    }
+   ],
+   "exports": [
+    "randint_",
+    "sample_negative",
+    "sample_negative_ByUser",
+    "set_seed",
+    "PYBIND11_MODULE"
+   ],
+   "totalLines": 106,
+   "hasStructuralAnalysis": true
+  },
+  "code/utils.py": {
+   "filePath": "code/utils.py",
+   "contentHash": "b538e0419c1cf55df4c4af6faf98a69cbfab7ce95bd9e5bacbd55dc08d5fd61b",
+   "functions": [
+    {
+     "name": "UniformSample_original",
+     "params": [
+      "dataset",
+      "neg_ratio"
+     ],
+     "exported": true,
+     "lineCount": 10
+    },
+    {
+     "name": "UniformSample_original_python",
+     "params": [
+      "dataset"
+     ],
+     "exported": true,
+     "lineCount": 33
+    },
+    {
+     "name": "set_seed",
+     "params": [
+      "seed"
+     ],
+     "exported": true,
+     "lineCount": 6
+    },
+    {
+     "name": "getFileName",
+     "params": [],
+     "exported": true,
+     "lineCount": 6
+    },
+    {
+     "name": "minibatch",
+     "params": [
+      "*tensors",
+      "**kwargs"
+     ],
+     "exported": true,
+     "lineCount": 11
+    },
+    {
+     "name": "shuffle",
+     "params": [
+      "*arrays",
+      "**kwargs"
+     ],
+     "exported": true,
+     "lineCount": 20
+    },
+    {
+     "name": "RecallPrecision_ATk",
+     "params": [
+      "test_data",
+      "r",
+      "k"
+     ],
+     "exported": true,
+     "lineCount": 12
+    },
+    {
+     "name": "MRRatK_r",
+     "params": [
+      "r",
+      "k"
+     ],
+     "exported": true,
+     "lineCount": 9
+    },
+    {
+     "name": "NDCGatK_r",
+     "params": [
+      "test_data",
+      "r",
+      "k"
+     ],
+     "exported": true,
+     "lineCount": 20
+    },
+    {
+     "name": "AUC",
+     "params": [
+      "all_item_scores",
+      "dataset",
+      "test_data"
+     ],
+     "exported": true,
+     "lineCount": 10
+    },
+    {
+     "name": "getLabel",
+     "params": [
+      "test_data",
+      "pred_data"
+     ],
+     "exported": true,
+     "lineCount": 9
+    },
+    {
+     "name": "HitRatio_ATk",
+     "params": [
+      "ground_true",
+      "ranked",
+      "k"
+     ],
+     "exported": true,
+     "lineCount": 2
+    }
+   ],
+   "classes": [
+    {
+     "name": "BPRLoss",
+     "methods": [
+      "__init__",
+      "stageOne"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 166
+    },
+    {
+     "name": "timer",
+     "methods": [
+      "get",
+      "dict",
+      "zero",
+      "__init__",
+      "__enter__",
+      "__exit__"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 60
+    },
+    {
+     "name": "MetricsRecorder",
+     "methods": [
+      "__init__",
+      "_build_header",
+      "log"
+     ],
+     "properties": [],
+     "exported": true,
+     "lineCount": 46
+    }
+   ],
+   "imports": [
+    {
+     "source": "world",
+     "specifiers": [
+      "world"
+     ]
+    },
+    {
+     "source": "torch",
+     "specifiers": [
+      "torch"
+     ]
+    },
+    {
+     "source": "torch",
+     "specifiers": [
+      "nn",
+      "optim"
+     ]
+    },
+    {
+     "source": "numpy",
+     "specifiers": [
+      "np"
+     ]
+    },
+    {
+     "source": "torch",
+     "specifiers": [
+      "log"
+     ]
+    },
+    {
+     "source": "dataloader",
+     "specifiers": [
+      "BasicDataset"
+     ]
+    },
+    {
+     "source": "time",
+     "specifiers": [
+      "time"
+     ]
+    },
+    {
+     "source": "model",
+     "specifiers": [
+      "LightGCN"
+     ]
+    },
+    {
+     "source": "model",
+     "specifiers": [
+      "PairWiseModel"
+     ]
+    },
+    {
+     "source": "sklearn.metrics",
+     "specifiers": [
+      "roc_auc_score"
+     ]
+    },
+    {
+     "source": "optimizers",
+     "specifiers": [
+      "ClusterCoupledAdam",
+      "ClusterCoupledSGD",
+      "ClusterCoupledRMSProp",
+      "Lamb"
+     ]
+    },
+    {
+     "source": "random",
+     "specifiers": [
+      "random"
+     ]
+    },
+    {
+     "source": "os",
+     "specifiers": [
+      "os"
+     ]
+    },
+    {
+     "source": "csv",
+     "specifiers": [
+      "csv"
+     ]
+    }
+   ],
+   "exports": [
+    "BPRLoss",
+    "UniformSample_original",
+    "UniformSample_original_python",
+    "set_seed",
+    "getFileName",
+    "minibatch",
+    "shuffle",
+    "timer",
+    "RecallPrecision_ATk",
+    "MRRatK_r",
+    "NDCGatK_r",
+    "AUC",
+    "getLabel",
+    "HitRatio_ATk",
+    "MetricsRecorder"
+   ],
+   "totalLines": 482,
+   "hasStructuralAnalysis": true
+  },
+  "code/world.py": {
+   "filePath": "code/world.py",
+   "contentHash": "f957bde6fca28b13c72aedfb0e3706ece03e30badf91557fef884925402f694a",
+   "functions": [
+    {
+     "name": "cprint",
+     "params": [
+      "words"
+     ],
+     "exported": true,
+     "lineCount": 2
+    }
+   ],
+   "classes": [],
+   "imports": [
+    {
+     "source": "os",
+     "specifiers": [
+      "os"
+     ]
+    },
+    {
+     "source": "os.path",
+     "specifiers": [
+      "join"
+     ]
+    },
+    {
+     "source": "torch",
+     "specifiers": [
+      "torch"
+     ]
+    },
+    {
+     "source": "enum",
+     "specifiers": [
+      "Enum"
+     ]
+    },
+    {
+     "source": "parse",
+     "specifiers": [
+      "parse_args"
+     ]
+    },
+    {
+     "source": "multiprocessing",
+     "specifiers": [
+      "multiprocessing"
+     ]
+    },
+    {
+     "source": "sys",
+     "specifiers": [
+      "sys"
+     ]
+    },
+    {
+     "source": "warnings",
+     "specifiers": [
+      "simplefilter"
+     ]
+    }
+   ],
+   "exports": [
+    "cprint"
+   ],
+   "totalLines": 104,
+   "hasStructuralAnalysis": true
+  },
+  "data/gowalla/README.md": {
+   "filePath": "data/gowalla/README.md",
+   "contentHash": "d2eea49ca83f034c71ddaa03422d4491e86fb6131bccfb35e35ec5f575a10955",
+   "functions": [],
+   "classes": [],
+   "imports": [],
+   "exports": [],
+   "totalLines": 3,
+   "hasStructuralAnalysis": false
+  },
+  "notebook.ipynb": {
+   "filePath": "notebook.ipynb",
+   "contentHash": "c763d914ab8ce10926854eb2311838c71070ea9974a3f4fd47ed98647f312711",
+   "functions": [],
+   "classes": [],
+   "imports": [],
+   "exports": [],
+   "totalLines": 233,
+   "hasStructuralAnalysis": false
+  },
+  "requirements.txt": {
+   "filePath": "requirements.txt",
+   "contentHash": "965ba587a03f1599deb8b98af053f07cba202b27851e9833a21674c626c3cf76",
+   "functions": [],
+   "classes": [],
+   "imports": [],
+   "exports": [],
+   "totalLines": 7,
+   "hasStructuralAnalysis": false
+  }
+ }
+}

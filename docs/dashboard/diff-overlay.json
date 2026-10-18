@@ -1,0 +1,15 @@
+{
+ "version": "1.0.0",
+ "baseBranch": "HEAD",
+ "generatedAt": "2026-10-18T13:57:49",
+ "changedFiles": [
+  "code/utils.py"
+ ],
+ "changedNodeIds": [
+  "function:code/utils.py:HitRatio_ATk"
+ ],
+ "affectedNodeIds": [
+  "file:code/utils.py",
+  "function:code/Procedure.py:test_one_batch"
+ ]
+}

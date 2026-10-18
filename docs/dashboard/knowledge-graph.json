@@ -1,0 +1,2010 @@
+{
+ "version": "1.0.0",
+ "project": {
+  "name": "25-fall-recommender",
+  "languages": [
+   "cpp",
+   "ipynb",
+   "markdown",
+   "python",
+   "txt"
+  ],
+  "frameworks": [
+   "PyTorch"
+  ],
+  "description": "LightGCN 기반 추천 모델 위에서 Cluster-Coupled Adam/SGD/RMSProp 등 클러스터 결합형 옵티마이저를 개발·실험하는 프로젝트로, optimizer, warm-up, reclustering interval 등을 CLI 옵션으로 제어하고 Recall/Precision/NDCG/HR 및 수렴 속도로 평가합니다.",
+  "analyzedAt": "2026-10-18T13:56:20",
+  "gitCommitHash": "5c6a24f2bc89c03f2b14eb93576ef71cec5e6d01"
+ },
+ "nodes": [
+  {
+   "id": "file:code/Procedure.py",
+   "type": "file",
+   "name": "Procedure.py",
+   "filePath": "code/Procedure.py",
+   "summary": "LightGCN의 BPR 학습 루프와 평가 절차를 담은 모듈로, Recall/Precision/NDCG/HR 지표와 옵티마이저 비교용 convergence speed·recall 분산을 계산한다.",
+   "tags": [
+    "training-loop",
+    "evaluation",
+    "metrics",
+    "bpr",
+    "service"
+   ],
+   "complexity": "complex",
+   "languageNotes": "multiprocessing.Pool로 배치별 지표 계산을 병렬화하며, 모듈 전역 metric_history 리스트로 평가 간 상태를 유지한다."
+  },
+  {
+   "id": "function:code/Procedure.py:BPR_train_original",
+   "type": "function",
+   "name": "BPR_train_original",
+   "filePath": "code/Procedure.py",
+   "lineRange": [
+    28,
+    59
+   ],
+   "summary": "균등 샘플링으로 (user, pos, neg) 트리플을 만들고 셔플·미니배치 단위로 BPRLoss.stageOne을 호출해 한 epoch를 학습한 뒤 평균 loss를 반환한다.",
+   "tags": [
+    "training-loop",
+    "bpr",
+    "negative-sampling",
+    "minibatch"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:code/Procedure.py:test_one_batch",
+   "type": "function",
+   "name": "test_one_batch",
+   "filePath": "code/Procedure.py",
+   "lineRange": [
+    62,
+    77
+   ],
+   "summary": "한 사용자 배치의 top-K 추천과 정답 아이템으로 각 K별 precision, recall, NDCG, hit ratio를 계산한다.",
+   "tags": [
+    "evaluation",
+    "metrics",
+    "ranking",
+    "utility"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "function:code/Procedure.py:Test",
+   "type": "function",
+   "name": "Test",
+   "filePath": "code/Procedure.py",
+   "lineRange": [
+    80,
+    190
+   ],
+   "summary": "테스트 사용자 전체에 대해 학습 아이템을 제외한 top-K 추천을 생성해 지표를 집계하고, 직전 평가 대비 recall@첫 K 변화량/Δepoch로 convergence speed와 recall 분산을 산출해 TensorBoard에 기록한다.",
+   "tags": [
+    "evaluation",
+    "metrics",
+    "convergence-speed",
+    "tensorboard",
+    "multiprocessing"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "file:code/main.py",
+   "type": "file",
+   "name": "main.py",
+   "filePath": "code/main.py",
+   "summary": "학습 실행 진입점으로, 시드 설정 후 register에서 데이터셋·모델을 생성하고 epoch마다 BPR 학습과 주기적 Test를 수행하며 지표를 CSV(MetricsRecorder)와 TensorBoard에 기록하고 체크포인트를 저장한다.",
+   "tags": [
+    "entry-point",
+    "training-loop",
+    "checkpoint",
+    "logging"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "데이터 경로가 상대경로(../data/<dataset>)이므로 code/ 디렉터리 안에서 실행해야 한다."
+  },
+  {
+   "id": "file:code/parse.py",
+   "type": "file",
+   "name": "parse.py",
+   "filePath": "code/parse.py",
+   "summary": "argparse 기반 명령행 인자 정의 모듈로, LightGCN 하이퍼파라미터와 함께 optimizer 선택 및 cluster_alpha·cluster_k·num_clusters 등 Cluster-Coupled 옵티마이저 설정을 받는다.",
+   "tags": [
+    "config",
+    "cli",
+    "argparse",
+    "hyperparameters"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:code/parse.py:parse_args",
+   "type": "function",
+   "name": "parse_args",
+   "filePath": "code/parse.py",
+   "lineRange": [
+    11,
+    85
+   ],
+   "summary": "배치 크기, 임베딩 차원, 레이어 수, 학습률, 데이터셋/모델, optimizer, 클러스터링 관련 옵션 등을 정의한 ArgumentParser를 만들어 파싱 결과를 반환한다.",
+   "tags": [
+    "cli",
+    "argparse",
+    "config",
+    "hyperparameters"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "file:code/world.py",
+   "type": "file",
+   "name": "world.py",
+   "filePath": "code/world.py",
+   "summary": "전역 설정 모듈로, 파싱된 인자를 config 딕셔너리로 변환하고 경로(ROOT/DATA/runs/checkpoints), device, CORES, seed, topks 등을 정의하며 지원 데이터셋·모델을 검증한다.",
+   "tags": [
+    "config",
+    "global-state",
+    "singleton"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "import 시점에 parse_args()를 실행하는 모듈 수준 싱글톤 패턴이며, topks는 eval()로 문자열을 리스트로 변환한다."
+  },
+  {
+   "id": "function:code/world.py:cprint",
+   "type": "function",
+   "name": "cprint",
+   "filePath": "code/world.py",
+   "lineRange": [
+    90,
+    91
+   ],
+   "summary": "ANSI 색상 코드로 강조된 문자열을 콘솔에 출력하는 헬퍼.",
+   "tags": [
+    "utility",
+    "logging",
+    "console"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:code/dataloader.py",
+   "type": "file",
+   "name": "dataloader.py",
+   "filePath": "code/dataloader.py",
+   "summary": "추천 데이터셋 추상 클래스(BasicDataset)와 LastFM·Gowalla 계열(Loader) 구현을 제공하며, train/test 상호작용을 읽어 정규화된 user-item 인접 행렬(sparse graph)을 생성·캐싱한다.",
+   "tags": [
+    "data-loader",
+    "dataset",
+    "sparse-graph",
+    "data-model"
+   ],
+   "complexity": "complex",
+   "languageNotes": "scipy.sparse 정규화 인접 행렬을 s_pre_adj_mat.npz로 캐싱하고 torch sparse tensor로 변환하며, A_split 옵션 시 행 단위 fold로 분할한다."
+  },
+  {
+   "id": "file:code/model.py",
+   "type": "file",
+   "name": "model.py",
+   "filePath": "code/model.py",
+   "summary": "PureMF와 LightGCN 추천 모델을 정의하며, 그래프 전파로 user/item 임베딩을 계산하고 softplus 기반 BPR loss와 layer-0 임베딩 L2 정규화를 제공한다.",
+   "tags": [
+    "model",
+    "lightgcn",
+    "graph-neural-network",
+    "bpr-loss"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "torch.sparse.mm으로 정규화 인접 행렬과 임베딩을 곱해 레이어별 임베딩을 평균하는 LightGCN 전파 방식을 사용한다."
+  },
+  {
+   "id": "file:code/register.py",
+   "type": "file",
+   "name": "register.py",
+   "filePath": "code/register.py",
+   "summary": "world.dataset 설정에 따라 데이터셋 객체(Loader는 상대 경로 \"../data/\"+dataset, 또는 LastFM)를 생성하고 설정을 출력하며, 모델 이름(mf, lgn)과 모델 클래스 매핑(MODELS)을 등록한다.",
+   "tags": [
+    "registry",
+    "config",
+    "entry-point",
+    "factory"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:code/dataloader.py:BasicDataset",
+   "type": "class",
+   "name": "BasicDataset",
+   "filePath": "code/dataloader.py",
+   "lineRange": [
+    23,
+    68
+   ],
+   "summary": "torch Dataset을 상속한 추천 데이터셋 추상 인터페이스로, 사용자/아이템 수, 학습 데이터 크기, testDict, 양성 아이템 조회, sparse graph 생성 메서드를 정의한다.",
+   "tags": [
+    "abstract-class",
+    "interface",
+    "dataset"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:code/dataloader.py:LastFM",
+   "type": "class",
+   "name": "LastFM",
+   "filePath": "code/dataloader.py",
+   "lineRange": [
+    70,
+    215
+   ],
+   "summary": "LastFM 데이터(data1.txt, test1.txt, trustnetwork.txt)를 읽어 user-item 행렬과 대칭 정규화 그래프를 구성하는 데이터셋 구현이다.",
+   "tags": [
+    "dataset",
+    "lastfm",
+    "sparse-graph"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "class:code/dataloader.py:Loader",
+   "type": "class",
+   "name": "Loader",
+   "filePath": "code/dataloader.py",
+   "lineRange": [
+    217,
+    409
+   ],
+   "summary": "Gowalla/Yelp2018/Amazon-book 형식의 train.txt·test.txt를 읽어 상호작용 행렬과 testDict를 만들고, D^-1/2 A D^-1/2 정규화 인접 행렬을 계산·캐싱해 디바이스로 올리는 메인 데이터셋 클래스이다.",
+   "tags": [
+    "dataset",
+    "gowalla",
+    "sparse-graph",
+    "caching"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:code/model.py:BasicModel",
+   "type": "class",
+   "name": "BasicModel",
+   "filePath": "code/model.py",
+   "lineRange": [
+    17,
+    22
+   ],
+   "summary": "nn.Module을 상속한 추천 모델 기본 클래스로 getUsersRating 인터페이스를 정의한다.",
+   "tags": [
+    "abstract-class",
+    "model",
+    "interface"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:code/model.py:PairWiseModel",
+   "type": "class",
+   "name": "PairWiseModel",
+   "filePath": "code/model.py",
+   "lineRange": [
+    24,
+    36
+   ],
+   "summary": "pairwise 학습용 bpr_loss(users, pos, neg) 인터페이스를 추가한 추상 모델 클래스이다.",
+   "tags": [
+    "abstract-class",
+    "model",
+    "bpr-loss"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:code/model.py:PureMF",
+   "type": "class",
+   "name": "PureMF",
+   "filePath": "code/model.py",
+   "lineRange": [
+    38,
+    81
+   ],
+   "summary": "user/item 임베딩 내적으로 점수를 계산하는 행렬분해(MF) 베이스라인 모델로, softplus 기반 BPR loss와 L2 정규화를 제공한다.",
+   "tags": [
+    "model",
+    "matrix-factorization",
+    "baseline"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "class:code/model.py:LightGCN",
+   "type": "class",
+   "name": "LightGCN",
+   "filePath": "code/model.py",
+   "lineRange": [
+    83,
+    215
+   ],
+   "summary": "정규화 그래프 위에서 임베딩을 여러 레이어로 전파·평균하는 LightGCN 모델로, 사전학습 임베딩이 없으면 normal(std=0.1)로 초기화하고 그래프 dropout, 평점 계산, softplus(neg−pos) BPR loss와 layer-0 임베딩 L2 정규화를 구현한다.",
+   "tags": [
+    "model",
+    "lightgcn",
+    "graph-neural-network",
+    "bpr-loss"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "function:code/model.py:computer",
+   "type": "function",
+   "name": "computer",
+   "filePath": "code/model.py",
+   "lineRange": [
+    140,
+    172
+   ],
+   "summary": "LightGCN.computer: (선택적 dropout된) 정규화 그래프와 sparse 행렬곱으로 레이어별 임베딩을 전파하고 평균하여 최종 user/item 임베딩을 반환한다.",
+   "tags": [
+    "graph-propagation",
+    "embedding",
+    "core-logic"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "document:README.md",
+   "type": "document",
+   "name": "README.md",
+   "filePath": "README.md",
+   "summary": "LightGCN 기반 Cluster-Coupled 옵티마이저 개발 프로젝트의 개요 문서로, 주요 구성 파일, Gowalla 실행 예시, CLI 옵션(옵티마이저·클러스터 관련 인자), 평가 지표(Recall/Precision/NDCG/HR, convergence_speed)를 설명합니다.",
+   "tags": [
+    "documentation",
+    "entry-point",
+    "overview",
+    "cli-usage"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:data/gowalla/README.md",
+   "type": "document",
+   "name": "README.md",
+   "filePath": "data/gowalla/README.md",
+   "summary": "Gowalla 전체 데이터셋을 SNAP(Stanford) 웹사이트에서 받을 수 있음을 안내하는 2줄짜리 데이터 디렉터리 안내 문서입니다.",
+   "tags": [
+    "documentation",
+    "dataset",
+    "gowalla"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "document:requirements.txt",
+   "type": "document",
+   "name": "requirements.txt",
+   "filePath": "requirements.txt",
+   "summary": "torch 2.5.1, pandas, numpy, scipy, scikit-learn, tensorboardX, tqdm 등 프로젝트 실행에 필요한 Python 패키지 버전을 고정한 의존성 목록입니다.",
+   "tags": [
+    "dependencies",
+    "configuration",
+    "python",
+    "build-system"
+   ],
+   "complexity": "simple"
+  },
+  {
+   "id": "file:code/optimizers.py",
+   "type": "file",
+   "name": "optimizers.py",
+   "filePath": "code/optimizers.py",
+   "summary": "임베딩 행을 K-means로 클러스터링하고 클러스터 평균 gradient를 섞어 업데이트하는 Cluster-Coupled Adam/SGD/RMSProp 옵티마이저와 비교용 Lamb 옵티마이저를 구현한 프로젝트의 핵심 모듈입니다.",
+   "tags": [
+    "optimizer",
+    "clustering",
+    "core-logic",
+    "pytorch"
+   ],
+   "complexity": "complex",
+   "languageNotes": "torch.optim.Optimizer를 상속해 param_groups/state 딕셔너리에 클러스터 할당·best_K 등 커스텀 상태를 캐싱하는 패턴을 사용합니다."
+  },
+  {
+   "id": "class:code/optimizers.py:ClusterCoupledAdam",
+   "type": "class",
+   "name": "ClusterCoupledAdam",
+   "filePath": "code/optimizers.py",
+   "summary": "임베딩 테이블 행을 K-means로 군집화(소스: param/grad/ema_grad)하고, 첫 클러스터링 시 Elbow 기법으로 최적 K를 한 번만 계산해 state['best_K']에 캐싱(num_clusters는 k_max 역할)하는 Adam 변형입니다. cluster_start_step 이후 burn-in을 거쳐 recluster_interval마다 재클러스터링하며, gradient가 0이 아닌 활성 행만으로 클러스터 평균을 구해 (1−α)g + α·ḡ_C 혼합 gradient로 표준 Adam moment를 갱신합니다(eps는 sqrt(v)에 더하고 step_size = lr·sqrt(bc2)/bc1).",
+   "tags": [
+    "optimizer",
+    "adam",
+    "k-means",
+    "clustering",
+    "elbow-method"
+   ],
+   "complexity": "complex",
+   "lineRange": [
+    9,
+    255
+   ]
+  },
+  {
+   "id": "class:code/optimizers.py:ClusterCoupledSGD",
+   "type": "class",
+   "name": "ClusterCoupledSGD",
+   "filePath": "code/optimizers.py",
+   "summary": "파라미터 값만으로 행을 K-means 클러스터링하고 클러스터 평균 gradient를 혼합해 업데이트하는 SGD 변형으로, burn-in이나 활성 행 마스킹은 없습니다.",
+   "tags": [
+    "optimizer",
+    "sgd",
+    "clustering",
+    "k-means"
+   ],
+   "complexity": "moderate",
+   "lineRange": [
+    257,
+    357
+   ]
+  },
+  {
+   "id": "class:code/optimizers.py:ClusterCoupledRMSProp",
+   "type": "class",
+   "name": "ClusterCoupledRMSProp",
+   "filePath": "code/optimizers.py",
+   "summary": "파라미터 값 기반 K-means 클러스터의 평균 gradient를 섞은 혼합 gradient로 제곱 평균을 갱신하는 RMSProp 변형으로, burn-in·마스킹 없이 주기적으로 재클러스터링합니다.",
+   "tags": [
+    "optimizer",
+    "rmsprop",
+    "clustering",
+    "k-means"
+   ],
+   "complexity": "moderate",
+   "lineRange": [
+    359,
+    471
+   ]
+  },
+  {
+   "id": "class:code/optimizers.py:Lamb",
+   "type": "class",
+   "name": "Lamb",
+   "filePath": "code/optimizers.py",
+   "summary": "Adam 업데이트에 파라미터 norm/업데이트 norm 기반 trust ratio를 곱해 layer-wise 학습률을 조정하는 LAMB 옵티마이저 구현으로, 비교 실험용 베이스라인입니다.",
+   "tags": [
+    "optimizer",
+    "lamb",
+    "trust-ratio",
+    "baseline"
+   ],
+   "complexity": "moderate",
+   "lineRange": [
+    473,
+    560
+   ]
+  },
+  {
+   "id": "file:code/sources/sampling.cpp",
+   "type": "file",
+   "name": "sampling.cpp",
+   "filePath": "code/sources/sampling.cpp",
+   "summary": "BPR 학습용 negative sampling을 C++로 빠르게 수행하는 선택적 확장 모듈로, pybind11로 바인딩되어 utils.py에서 cppimport로 로드되며 실패 시 Python 구현으로 대체됩니다.",
+   "tags": [
+    "cpp-extension",
+    "sampling",
+    "pybind11",
+    "performance"
+   ],
+   "complexity": "moderate",
+   "languageNotes": "PYBIND11_MODULE 매크로로 C++ 함수를 Python 모듈로 노출하고, cppimport가 첫 import 시 자동 컴파일합니다."
+  },
+  {
+   "id": "function:code/sources/sampling.cpp:randint_",
+   "type": "function",
+   "name": "randint_",
+   "filePath": "code/sources/sampling.cpp",
+   "summary": "주어진 상한 미만의 균등 난수 정수를 생성하는 내부 헬퍼입니다.",
+   "tags": [
+    "utility",
+    "random",
+    "helper"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    22,
+    25
+   ]
+  },
+  {
+   "id": "function:code/sources/sampling.cpp:sample_negative",
+   "type": "function",
+   "name": "sample_negative",
+   "filePath": "code/sources/sampling.cpp",
+   "summary": "전체 학습 상호작용 수만큼 사용자를 무작위로 뽑고 각 사용자에 대해 positive 아이템 1개와 미상호작용 negative 아이템을 샘플링해 (user, pos, neg) 배열을 반환합니다.",
+   "tags": [
+    "sampling",
+    "negative-sampling",
+    "bpr"
+   ],
+   "complexity": "moderate",
+   "lineRange": [
+    27,
+    56
+   ]
+  },
+  {
+   "id": "function:code/sources/sampling.cpp:sample_negative_ByUser",
+   "type": "function",
+   "name": "sample_negative_ByUser",
+   "filePath": "code/sources/sampling.cpp",
+   "summary": "지정된 사용자 목록 각각에 대해 positive/negative 아이템 쌍을 샘플링하는 사용자 단위 negative sampling 함수입니다.",
+   "tags": [
+    "sampling",
+    "negative-sampling",
+    "bpr"
+   ],
+   "complexity": "moderate",
+   "lineRange": [
+    58,
+    86
+   ]
+  },
+  {
+   "id": "function:code/sources/sampling.cpp:set_seed",
+   "type": "function",
+   "name": "set_seed",
+   "filePath": "code/sources/sampling.cpp",
+   "summary": "C++ 난수 생성기의 시드를 설정해 샘플링 재현성을 보장합니다.",
+   "tags": [
+    "utility",
+    "random",
+    "reproducibility"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    88,
+    91
+   ]
+  },
+  {
+   "id": "function:code/sources/sampling.cpp:PYBIND11_MODULE",
+   "type": "function",
+   "name": "PYBIND11_MODULE",
+   "filePath": "code/sources/sampling.cpp",
+   "summary": "샘플링 함수와 시드 설정 함수를 Python 모듈로 노출하는 pybind11 바인딩 정의입니다.",
+   "tags": [
+    "pybind11",
+    "binding",
+    "entry-point"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    95,
+    106
+   ]
+  },
+  {
+   "id": "file:code/utils.py",
+   "type": "file",
+   "name": "utils.py",
+   "filePath": "code/utils.py",
+   "summary": "BPR 손실·옵티마이저 래퍼(BPRLoss), negative 샘플링(C++ 확장/Python fallback), 미니배치·셔플·타이머 유틸, Recall/Precision/NDCG/AUC/HR 평가 지표, 에포크별 CSV 로그 기록기(MetricsRecorder)를 제공하는 학습 공용 유틸리티 모듈입니다.",
+   "tags": [
+    "utility",
+    "metrics",
+    "training",
+    "sampling",
+    "logging"
+   ],
+   "complexity": "complex"
+  },
+  {
+   "id": "class:code/utils.py:BPRLoss",
+   "type": "class",
+   "name": "BPRLoss",
+   "filePath": "code/utils.py",
+   "summary": "LightGCN 학습용 BPR 손실과 옵티마이저 래퍼로, config['optimizer']에 따라 Adam/SGD/RMSProp/Lamb/Cluster-Coupled 옵티마이저를 생성하며 cluster 모드에서는 embedding_user/embedding_item만 클러스터링 param group으로 보냅니다. stageOne에서 BPR loss + reg_loss·decay로 1 step 업데이트를 수행합니다.",
+   "tags": [
+    "loss-function",
+    "optimizer-wrapper",
+    "bpr",
+    "training"
+   ],
+   "complexity": "complex",
+   "lineRange": [
+    33,
+    198
+   ]
+  },
+  {
+   "id": "function:code/utils.py:UniformSample_original",
+   "type": "function",
+   "name": "UniformSample_original",
+   "filePath": "code/utils.py",
+   "summary": "C++ 확장이 로드되면 sampling.sample_negative를, 아니면 Python 구현을 호출해 BPR 학습용 (user, pos, neg) 샘플을 생성합니다.",
+   "tags": [
+    "sampling",
+    "negative-sampling",
+    "dispatcher"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    200,
+    209
+   ]
+  },
+  {
+   "id": "function:code/utils.py:UniformSample_original_python",
+   "type": "function",
+   "name": "UniformSample_original_python",
+   "filePath": "code/utils.py",
+   "summary": "원본 LightGCN의 Python BPR 샘플링 구현으로, 사용자를 무작위로 뽑아 positive 아이템과 미상호작용 negative 아이템을 샘플링합니다.",
+   "tags": [
+    "sampling",
+    "negative-sampling",
+    "fallback"
+   ],
+   "complexity": "moderate",
+   "lineRange": [
+    211,
+    243
+   ]
+  },
+  {
+   "id": "function:code/utils.py:set_seed",
+   "type": "function",
+   "name": "set_seed",
+   "filePath": "code/utils.py",
+   "summary": "numpy, torch(CUDA 포함), random의 시드를 일괄 설정해 실험 재현성을 확보합니다.",
+   "tags": [
+    "utility",
+    "reproducibility",
+    "random"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    248,
+    253
+   ]
+  },
+  {
+   "id": "function:code/utils.py:getFileName",
+   "type": "function",
+   "name": "getFileName",
+   "filePath": "code/utils.py",
+   "summary": "모델 종류·레이어 수·임베딩 차원으로 체크포인트 파일 경로를 생성합니다.",
+   "tags": [
+    "utility",
+    "checkpoint",
+    "path"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    255,
+    260
+   ]
+  },
+  {
+   "id": "function:code/utils.py:minibatch",
+   "type": "function",
+   "name": "minibatch",
+   "filePath": "code/utils.py",
+   "summary": "하나 이상의 텐서/배열을 지정한 배치 크기로 잘라 순차적으로 yield하는 제너레이터입니다.",
+   "tags": [
+    "utility",
+    "batching",
+    "generator"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    262,
+    272
+   ]
+  },
+  {
+   "id": "function:code/utils.py:shuffle",
+   "type": "function",
+   "name": "shuffle",
+   "filePath": "code/utils.py",
+   "summary": "길이가 같은 여러 배열을 동일한 무작위 순열로 함께 섞습니다.",
+   "tags": [
+    "utility",
+    "shuffle",
+    "data-processing"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    275,
+    294
+   ]
+  },
+  {
+   "id": "class:code/utils.py:timer",
+   "type": "class",
+   "name": "timer",
+   "filePath": "code/utils.py",
+   "summary": "이름 있는 구간별 실행 시간을 누적 기록하는 context manager 기반 타이머로, 클래스 수준 딕셔너리에 시간을 모아 get/dict/zero로 조회·초기화합니다.",
+   "tags": [
+    "utility",
+    "profiling",
+    "context-manager"
+   ],
+   "complexity": "moderate",
+   "lineRange": [
+    297,
+    356
+   ]
+  },
+  {
+   "id": "function:code/utils.py:RecallPrecision_ATk",
+   "type": "function",
+   "name": "RecallPrecision_ATk",
+   "filePath": "code/utils.py",
+   "summary": "top-k 예측의 정답 여부 행렬로 배치 단위 Recall@k와 Precision@k 합계를 계산합니다.",
+   "tags": [
+    "metrics",
+    "recall",
+    "precision",
+    "evaluation"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    361,
+    372
+   ]
+  },
+  {
+   "id": "function:code/utils.py:MRRatK_r",
+   "type": "function",
+   "name": "MRRatK_r",
+   "filePath": "code/utils.py",
+   "summary": "top-k 예측 결과에서 Mean Reciprocal Rank@k를 계산합니다.",
+   "tags": [
+    "metrics",
+    "mrr",
+    "evaluation"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    375,
+    383
+   ]
+  },
+  {
+   "id": "function:code/utils.py:NDCGatK_r",
+   "type": "function",
+   "name": "NDCGatK_r",
+   "filePath": "code/utils.py",
+   "summary": "정답 아이템 수를 고려한 이상적 DCG로 정규화해 배치 단위 NDCG@k 합계를 계산합니다.",
+   "tags": [
+    "metrics",
+    "ndcg",
+    "evaluation"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    385,
+    404
+   ]
+  },
+  {
+   "id": "function:code/utils.py:AUC",
+   "type": "function",
+   "name": "AUC",
+   "filePath": "code/utils.py",
+   "summary": "사용자 단위 예측 점수와 정답 레이블로 sklearn roc_auc_score를 이용해 AUC를 계산합니다.",
+   "tags": [
+    "metrics",
+    "auc",
+    "evaluation"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    406,
+    415
+   ]
+  },
+  {
+   "id": "function:code/utils.py:getLabel",
+   "type": "function",
+   "name": "getLabel",
+   "filePath": "code/utils.py",
+   "summary": "테스트 정답 아이템 목록과 top-k 예측 아이템 목록을 비교해 0/1 적중 행렬을 만듭니다.",
+   "tags": [
+    "metrics",
+    "labeling",
+    "evaluation"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    417,
+    425
+   ]
+  },
+  {
+   "id": "function:code/utils.py:HitRatio_ATk",
+   "type": "function",
+   "name": "HitRatio_ATk",
+   "filePath": "code/utils.py",
+   "summary": "Hit Ratio@k를 계산하는 함수지만, 배치 전체 레이블 행렬 r을 받아 np.sum(ranked[:k])가 배치의 처음 k개 '행'을 합산하므로 배치당 0/1 하나만 반환합니다. 따라서 HR은 (#테스트 배치 / #사용자) ≈ 0.0020으로 상한이 묶이며 사용자별 hit ratio가 아니라는 알려진 문제가 있습니다.",
+   "tags": [
+    "metrics",
+    "hit-ratio",
+    "evaluation",
+    "known-issue"
+   ],
+   "complexity": "simple",
+   "lineRange": [
+    429,
+    430
+   ]
+  },
+  {
+   "id": "class:code/utils.py:MetricsRecorder",
+   "type": "class",
+   "name": "MetricsRecorder",
+   "filePath": "code/utils.py",
+   "summary": "에포크마다 epoch, loss, precision/recall/ndcg/hr@k, convergence_speed, variance를 CSV 파일로 기록하는 로거로, top-k 목록에 맞춰 헤더를 동적으로 구성합니다.",
+   "tags": [
+    "logging",
+    "metrics",
+    "csv",
+    "experiment-tracking"
+   ],
+   "complexity": "moderate",
+   "lineRange": [
+    436,
+    481
+   ]
+  },
+  {
+   "id": "file:notebook.ipynb",
+   "type": "file",
+   "name": "notebook.ipynb",
+   "filePath": "notebook.ipynb",
+   "summary": "로컬 환경에서 가상환경 활성화, main.py를 Cluster-Coupled 옵티마이저 옵션으로 실행, TensorBoard 확인, Adam vs CCA 학습 로그 CSV를 matplotlib으로 비교 시각화하는 실행 가이드 노트북입니다.",
+   "tags": [
+    "notebook",
+    "experiment",
+    "visualization",
+    "usage-guide"
+   ],
+   "complexity": "moderate"
+  },
+  {
+   "id": "function:notebook.ipynb:plot_metrics",
+   "type": "function",
+   "name": "plot_metrics",
+   "filePath": "notebook.ipynb",
+   "summary": "여러 학습 로그 CSV를 읽어 loss와 Recall/NDCG 등 지표를 에포크별로 겹쳐 그려 옵티마이저 간 학습 곡선을 비교합니다.",
+   "tags": [
+    "visualization",
+    "plotting",
+    "metrics-comparison"
+   ],
+   "complexity": "moderate"
+  }
+ ],
+ "edges": [
+  {
+   "source": "file:code/Procedure.py",
+   "target": "file:code/dataloader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/Procedure.py",
+   "target": "file:code/model.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/Procedure.py",
+   "target": "file:code/utils.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/Procedure.py",
+   "target": "file:code/world.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/main.py",
+   "target": "file:code/Procedure.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/main.py",
+   "target": "file:code/register.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/main.py",
+   "target": "file:code/utils.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/main.py",
+   "target": "file:code/world.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/world.py",
+   "target": "file:code/parse.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/Procedure.py",
+   "target": "function:code/Procedure.py:BPR_train_original",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/Procedure.py",
+   "target": "function:code/Procedure.py:test_one_batch",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/Procedure.py",
+   "target": "function:code/Procedure.py:Test",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/parse.py",
+   "target": "function:code/parse.py:parse_args",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/world.py",
+   "target": "function:code/world.py:cprint",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/Procedure.py",
+   "target": "function:code/Procedure.py:BPR_train_original",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/Procedure.py",
+   "target": "function:code/Procedure.py:test_one_batch",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/Procedure.py",
+   "target": "function:code/Procedure.py:Test",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/parse.py",
+   "target": "function:code/parse.py:parse_args",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/world.py",
+   "target": "function:code/world.py:cprint",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/Procedure.py:Test",
+   "target": "function:code/Procedure.py:test_one_batch",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/Procedure.py:BPR_train_original",
+   "target": "function:code/utils.py:UniformSample_original",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/Procedure.py:BPR_train_original",
+   "target": "function:code/utils.py:shuffle",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/Procedure.py:BPR_train_original",
+   "target": "function:code/utils.py:minibatch",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/Procedure.py:test_one_batch",
+   "target": "function:code/utils.py:getLabel",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/Procedure.py:test_one_batch",
+   "target": "function:code/utils.py:RecallPrecision_ATk",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/Procedure.py:test_one_batch",
+   "target": "function:code/utils.py:NDCGatK_r",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/Procedure.py:test_one_batch",
+   "target": "function:code/utils.py:HitRatio_ATk",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/Procedure.py:Test",
+   "target": "function:code/utils.py:minibatch",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/main.py",
+   "target": "function:code/Procedure.py:BPR_train_original",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/main.py",
+   "target": "function:code/Procedure.py:Test",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/main.py",
+   "target": "function:code/utils.py:set_seed",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/main.py",
+   "target": "function:code/utils.py:getFileName",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/main.py",
+   "target": "class:code/utils.py:BPRLoss",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:code/main.py",
+   "target": "class:code/utils.py:MetricsRecorder",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:code/world.py",
+   "target": "function:code/parse.py:parse_args",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/dataloader.py",
+   "target": "file:code/world.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/model.py",
+   "target": "file:code/dataloader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/model.py",
+   "target": "file:code/world.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/register.py",
+   "target": "file:code/dataloader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/register.py",
+   "target": "file:code/model.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/register.py",
+   "target": "file:code/utils.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/register.py",
+   "target": "file:code/world.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/dataloader.py",
+   "target": "class:code/dataloader.py:BasicDataset",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/dataloader.py",
+   "target": "class:code/dataloader.py:BasicDataset",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/dataloader.py",
+   "target": "class:code/dataloader.py:LastFM",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/dataloader.py",
+   "target": "class:code/dataloader.py:LastFM",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/dataloader.py",
+   "target": "class:code/dataloader.py:Loader",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/dataloader.py",
+   "target": "class:code/dataloader.py:Loader",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/model.py",
+   "target": "class:code/model.py:BasicModel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/model.py",
+   "target": "class:code/model.py:BasicModel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/model.py",
+   "target": "class:code/model.py:PairWiseModel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/model.py",
+   "target": "class:code/model.py:PairWiseModel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/model.py",
+   "target": "class:code/model.py:PureMF",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/model.py",
+   "target": "class:code/model.py:PureMF",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/model.py",
+   "target": "class:code/model.py:LightGCN",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/model.py",
+   "target": "class:code/model.py:LightGCN",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "class:code/model.py:LightGCN",
+   "target": "function:code/model.py:computer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "class:code/dataloader.py:LastFM",
+   "target": "class:code/dataloader.py:BasicDataset",
+   "type": "inherits",
+   "direction": "forward",
+   "weight": 0.9
+  },
+  {
+   "source": "class:code/dataloader.py:Loader",
+   "target": "class:code/dataloader.py:BasicDataset",
+   "type": "inherits",
+   "direction": "forward",
+   "weight": 0.9
+  },
+  {
+   "source": "class:code/model.py:PairWiseModel",
+   "target": "class:code/model.py:BasicModel",
+   "type": "inherits",
+   "direction": "forward",
+   "weight": 0.9
+  },
+  {
+   "source": "class:code/model.py:PureMF",
+   "target": "class:code/model.py:BasicModel",
+   "type": "inherits",
+   "direction": "forward",
+   "weight": 0.9
+  },
+  {
+   "source": "class:code/model.py:LightGCN",
+   "target": "class:code/model.py:BasicModel",
+   "type": "inherits",
+   "direction": "forward",
+   "weight": 0.9
+  },
+  {
+   "source": "class:code/dataloader.py:Loader",
+   "target": "function:code/world.py:cprint",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "class:code/model.py:LightGCN",
+   "target": "function:code/world.py:cprint",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "class:code/model.py:LightGCN",
+   "target": "class:code/dataloader.py:BasicDataset",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "class:code/model.py:PureMF",
+   "target": "class:code/dataloader.py:BasicDataset",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "file:code/register.py",
+   "target": "class:code/dataloader.py:Loader",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:code/register.py",
+   "target": "class:code/dataloader.py:LastFM",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:code/register.py",
+   "target": "class:code/model.py:PureMF",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:code/register.py",
+   "target": "class:code/model.py:LightGCN",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "document:README.md",
+   "target": "file:code/main.py",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:README.md",
+   "target": "file:code/optimizers.py",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:README.md",
+   "target": "file:notebook.ipynb",
+   "type": "documents",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:data/gowalla/README.md",
+   "target": "file:code/dataloader.py",
+   "type": "related",
+   "direction": "forward",
+   "weight": 0.5
+  },
+  {
+   "source": "document:requirements.txt",
+   "target": "file:code/main.py",
+   "type": "configures",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:code/optimizers.py",
+   "target": "class:code/optimizers.py:ClusterCoupledAdam",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/optimizers.py",
+   "target": "class:code/optimizers.py:ClusterCoupledAdam",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/optimizers.py",
+   "target": "class:code/optimizers.py:ClusterCoupledSGD",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/optimizers.py",
+   "target": "class:code/optimizers.py:ClusterCoupledSGD",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/optimizers.py",
+   "target": "class:code/optimizers.py:ClusterCoupledRMSProp",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/optimizers.py",
+   "target": "class:code/optimizers.py:ClusterCoupledRMSProp",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/optimizers.py",
+   "target": "class:code/optimizers.py:Lamb",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/optimizers.py",
+   "target": "class:code/optimizers.py:Lamb",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/sources/sampling.cpp",
+   "target": "function:code/sources/sampling.cpp:randint_",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/sources/sampling.cpp",
+   "target": "function:code/sources/sampling.cpp:randint_",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/sources/sampling.cpp",
+   "target": "function:code/sources/sampling.cpp:sample_negative",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/sources/sampling.cpp",
+   "target": "function:code/sources/sampling.cpp:sample_negative",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/sources/sampling.cpp",
+   "target": "function:code/sources/sampling.cpp:sample_negative_ByUser",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/sources/sampling.cpp",
+   "target": "function:code/sources/sampling.cpp:sample_negative_ByUser",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/sources/sampling.cpp",
+   "target": "function:code/sources/sampling.cpp:set_seed",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/sources/sampling.cpp",
+   "target": "function:code/sources/sampling.cpp:set_seed",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/sources/sampling.cpp",
+   "target": "function:code/sources/sampling.cpp:PYBIND11_MODULE",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/sources/sampling.cpp",
+   "target": "function:code/sources/sampling.cpp:PYBIND11_MODULE",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "file:code/dataloader.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "file:code/model.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "file:code/optimizers.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "file:code/world.py",
+   "type": "imports",
+   "direction": "forward",
+   "weight": 0.7
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "file:code/sources/sampling.cpp",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "class:code/utils.py:BPRLoss",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "class:code/utils.py:BPRLoss",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "class:code/utils.py:BPRLoss",
+   "target": "class:code/optimizers.py:ClusterCoupledAdam",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "class:code/utils.py:BPRLoss",
+   "target": "class:code/optimizers.py:ClusterCoupledSGD",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "class:code/utils.py:BPRLoss",
+   "target": "class:code/optimizers.py:ClusterCoupledRMSProp",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "class:code/utils.py:BPRLoss",
+   "target": "class:code/optimizers.py:Lamb",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:UniformSample_original",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:UniformSample_original",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/utils.py:UniformSample_original",
+   "target": "function:code/sources/sampling.cpp:sample_negative",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "function:code/utils.py:UniformSample_original",
+   "target": "function:code/utils.py:UniformSample_original_python",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:UniformSample_original_python",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:UniformSample_original_python",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:set_seed",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:set_seed",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:getFileName",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:getFileName",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:minibatch",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:minibatch",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:shuffle",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:shuffle",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "class:code/utils.py:timer",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "class:code/utils.py:timer",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:RecallPrecision_ATk",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:RecallPrecision_ATk",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:MRRatK_r",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:MRRatK_r",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:NDCGatK_r",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:NDCGatK_r",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:AUC",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:AUC",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:getLabel",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:getLabel",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:HitRatio_ATk",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/utils.py:HitRatio_ATk",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "class:code/utils.py:MetricsRecorder",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "class:code/utils.py:MetricsRecorder",
+   "type": "exports",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/world.py:cprint",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  },
+  {
+   "source": "file:notebook.ipynb",
+   "target": "file:code/main.py",
+   "type": "depends_on",
+   "direction": "forward",
+   "weight": 0.6
+  },
+  {
+   "source": "file:notebook.ipynb",
+   "target": "function:notebook.ipynb:plot_metrics",
+   "type": "contains",
+   "direction": "forward",
+   "weight": 1.0
+  },
+  {
+   "source": "file:code/utils.py",
+   "target": "function:code/sources/sampling.cpp:set_seed",
+   "type": "calls",
+   "direction": "forward",
+   "weight": 0.8
+  }
+ ],
+ "layers": [
+  {
+   "id": "layer:entry-config",
+   "name": "실행 진입점·설정 계층",
+   "description": "main.py 학습 루프 진입점과 argparse 인자(parse), 전역 config·device(world), 데이터셋·모델 생성 레지스트리(register)로 실험 실행을 조립하는 계층입니다.",
+   "nodeIds": [
+    "file:code/main.py",
+    "file:code/parse.py",
+    "file:code/world.py",
+    "file:code/register.py"
+   ]
+  },
+  {
+   "id": "layer:data",
+   "name": "데이터 계층",
+   "description": "Gowalla·LastFM 상호작용 데이터 로딩과 정규화 인접 그래프 구성(dataloader), C++ negative sampling 확장, 데이터셋 출처 안내 문서를 담당합니다.",
+   "nodeIds": [
+    "file:code/dataloader.py",
+    "file:code/sources/sampling.cpp",
+    "document:data/gowalla/README.md"
+   ]
+  },
+  {
+   "id": "layer:model",
+   "name": "추천 모델 계층",
+   "description": "LightGCN 그래프 전파와 PureMF 임베딩, BPR loss를 정의하는 추천 모델 계층입니다.",
+   "nodeIds": [
+    "file:code/model.py"
+   ]
+  },
+  {
+   "id": "layer:optimizer",
+   "name": "Cluster-Coupled 옵티마이저 계층",
+   "description": "임베딩 행을 K-means로 클러스터링해 클러스터 평균 gradient를 섞는 Cluster-Coupled Adam/SGD/RMSProp 구현으로, 프로젝트의 핵심 연구 기여입니다.",
+   "nodeIds": [
+    "file:code/optimizers.py"
+   ]
+  },
+  {
+   "id": "layer:training",
+   "name": "학습·평가 계층",
+   "description": "BPR 학습 루프와 Recall/Precision/NDCG 평가(Procedure), 옵티마이저 래퍼·샘플링·미니배치 유틸(utils)로 학습 과정을 수행합니다.",
+   "nodeIds": [
+    "file:code/Procedure.py",
+    "file:code/utils.py"
+   ]
+  },
+  {
+   "id": "layer:documentation",
+   "name": "문서·실험 계층",
+   "description": "프로젝트 개요 README, 의존성 목록 requirements.txt, 옵티마이저 비교 실험을 실행하는 notebook을 포함합니다.",
+   "nodeIds": [
+    "document:README.md",
+    "document:requirements.txt",
+    "file:notebook.ipynb"
+   ]
+  }
+ ],
+ "tour": [
+  {
+   "order": 1,
+   "title": "프로젝트 개요",
+   "description": "README.md는 이 프로젝트가 LightGCN 추천 모델 위에서 Cluster-Coupled 옵티마이저를 개발·비교하는 실험 저장소임을 설명합니다. 주요 구성 파일, Gowalla 실행 예시, 옵티마이저·클러스터 관련 CLI 옵션, 그리고 Recall/Precision/NDCG/HR과 convergence_speed 같은 평가 지표가 정리되어 있어 투어 전체의 지도 역할을 합니다. requirements.txt는 torch 2.5.1, scikit-learn, tensorboardX 등 실행에 필요한 패키지 버전을 고정합니다.",
+   "nodeIds": [
+    "document:README.md",
+    "document:requirements.txt"
+   ]
+  },
+  {
+   "order": 2,
+   "title": "실행 진입점과 전역 설정",
+   "description": "code/main.py는 학습 한 번(run)의 전체 흐름을 지휘하는 진입점으로, 시드를 고정한 뒤 register에서 데이터셋·모델을 받고 epoch마다 BPR 학습과 주기적 Test를 돌리며 결과를 CSV와 TensorBoard에 기록합니다. 그 앞단에서 parse.py가 optimizer 선택과 cluster_alpha·cluster_k·num_clusters 같은 Cluster-Coupled 옵션을 argparse로 받고, world.py가 이를 config 딕셔너리와 경로·device·topks 등의 전역 값으로 바꿉니다. world.py는 fan-in이 가장 높은 노드로, 거의 모든 모듈이 이 config를 참조한다는 점을 기억해 두세요.",
+   "nodeIds": [
+    "file:code/main.py",
+    "file:code/parse.py",
+    "file:code/world.py",
+    "function:code/utils.py:set_seed"
+   ],
+   "languageLesson": "argparse로 받은 Namespace를 world.py에서 dict(config)로 한 번 변환해 두면, 다른 모듈은 `world.config['optimizer']`처럼 하나의 전역 설정 객체만 import해서 쓰게 됩니다. Python 모듈은 한 번만 로드되므로(module caching) 사실상 싱글턴 설정 저장소처럼 동작합니다."
+  },
+  {
+   "order": 3,
+   "title": "데이터셋과 정규화 그래프",
+   "description": "main.py가 호출하는 register.py는 world.dataset 값에 따라 Loader(Gowalla/Yelp2018/Amazon-book 형식) 또는 LastFM 데이터셋을 만들고, 'mf'/'lgn' 이름을 모델 클래스에 매핑합니다. Loader는 train.txt·test.txt를 읽어 상호작용 행렬과 testDict를 만들고 D^-1/2 A D^-1/2 정규화 인접 행렬을 계산·캐싱하는데, 이 sparse graph가 다음 단계 LightGCN 전파의 재료가 됩니다. BasicDataset은 fan-in이 높은 추상 인터페이스로, 학습·평가 코드는 이 인터페이스만 보고 동작합니다.",
+   "nodeIds": [
+    "file:code/register.py",
+    "file:code/dataloader.py",
+    "class:code/dataloader.py:Loader",
+    "class:code/dataloader.py:BasicDataset",
+    "document:data/gowalla/README.md"
+   ]
+  },
+  {
+   "order": 4,
+   "title": "LightGCN 추천 모델",
+   "description": "model.py의 LightGCN은 3단계에서 만든 정규화 그래프 위에서 user/item 임베딩을 여러 레이어로 전파한 뒤 평균하고(computer), softplus(neg−pos) 형태의 BPR loss와 layer-0 임베딩 L2 정규화를 제공합니다. 중요한 점은 학습 대상 파라미터가 사실상 embedding_user/embedding_item이라는 두 개의 임베딩 테이블이라는 것으로, 뒤에 나올 Cluster-Coupled 옵티마이저는 바로 이 테이블의 '행(row)'을 클러스터링합니다. PureMF는 비교용 행렬분해 베이스라인입니다.",
+   "nodeIds": [
+    "class:code/model.py:LightGCN",
+    "function:code/model.py:computer",
+    "class:code/model.py:BasicModel",
+    "class:code/model.py:PureMF"
+   ],
+   "languageLesson": "BasicModel → PairWiseModel → LightGCN으로 이어지는 nn.Module 상속 계층은 '인터페이스(getUsersRating, bpr_loss)는 부모에, 구현은 자식에' 두는 템플릿 패턴입니다. 그래프 전파는 torch.sparse.mm으로 sparse 인접 행렬 × dense 임베딩을 계산해 메모리를 아낍니다."
+  },
+  {
+   "order": 5,
+   "title": "BPR 학습 루프와 샘플링",
+   "description": "Procedure.BPR_train_original은 한 epoch의 학습을 담당합니다: UniformSample_original로 (user, pos, neg) 트리플을 만들고, shuffle·minibatch로 잘라 배치마다 BPRLoss.stageOne을 호출합니다. 샘플링은 C++ 확장(sampling.cpp, pybind11·cppimport)이 로드되면 빠른 sample_negative를, 실패하면 Python fallback 구현을 사용합니다. 이 루프 안에서 매 배치 실제로 파라미터를 바꾸는 주체가 다음 단계의 BPRLoss와 옵티마이저입니다.",
+   "nodeIds": [
+    "function:code/Procedure.py:BPR_train_original",
+    "function:code/utils.py:UniformSample_original",
+    "file:code/sources/sampling.cpp",
+    "function:code/sources/sampling.cpp:sample_negative",
+    "function:code/utils.py:minibatch"
+   ],
+   "languageLesson": "utils.minibatch는 `yield`로 배치를 하나씩 돌려주는 generator라서 전체 배치 리스트를 메모리에 만들지 않습니다. C++ 확장은 `try: import ... except: fallback` 패턴으로 선택적 의존성을 처리하는 전형적인 예입니다."
+  },
+  {
+   "order": 6,
+   "title": "BPRLoss: 옵티마이저 선택 지점",
+   "description": "utils.BPRLoss는 손실 계산과 옵티마이저를 묶은 래퍼로, config['optimizer'] 값에 따라 Adam/SGD/RMSProp/Lamb 또는 Cluster-Coupled 옵티마이저를 생성합니다. cluster 모드에서는 embedding_user/embedding_item만 클러스터링 param group으로 보내므로, 4단계에서 본 임베딩 테이블만 클러스터 결합 업데이트를 받습니다. stageOne은 BPR loss에 reg_loss·decay를 더해 backward 후 optimizer.step()을 한 번 수행하는, 학습 루프와 옵티마이저 사이의 접점입니다.",
+   "nodeIds": [
+    "class:code/utils.py:BPRLoss",
+    "file:code/utils.py"
+   ],
+   "languageLesson": "torch.optim 옵티마이저는 `[{'params': [...], 'lr': ...}, {...}]` 같은 param group 리스트를 받을 수 있어, 같은 옵티마이저 안에서도 파라미터 그룹마다 다른 설정(예: 클러스터링 여부)을 줄 수 있습니다. step() 안에서 `for group in self.param_groups`로 그룹별 옵션을 읽습니다."
+  },
+  {
+   "order": 7,
+   "title": "핵심 아이디어: Cluster-Coupled Adam",
+   "description": "optimizers.ClusterCoupledAdam이 이 프로젝트의 핵심입니다. 임베딩 행을 K-means로 군집화하는데 클러스터링 소스로 param/grad/ema_grad(EMA gradient)를 고를 수 있고, 첫 클러스터링 때 Elbow 기법으로 최적 K를 한 번 계산해 state['best_K']에 캐싱합니다(num_clusters는 k_max 역할). cluster_start_step 이후 burn-in을 거쳐 recluster_interval마다 재클러스터링하며, gradient가 0이 아닌 활성 행만 마스킹해 클러스터 평균 ḡ_C를 구한 뒤 (1−α)g + α·ḡ_C 혼합 gradient로 표준 Adam moment를 갱신합니다.",
+   "nodeIds": [
+    "class:code/optimizers.py:ClusterCoupledAdam",
+    "file:code/optimizers.py"
+   ],
+   "languageLesson": "torch.optim.Optimizer를 상속하면 `self.state[p]`라는 파라미터별 딕셔너리에 exp_avg, exp_avg_sq, step, 클러스터 할당, best_K 같은 상태를 보관할 수 있습니다. step()은 보통 `@torch.no_grad()`로 감싸 업데이트 연산이 autograd 그래프에 기록되지 않게 합니다. 클러스터별 gradient 평균은 `sums.scatter_add_(0, labels[:,None].expand_as(g), g)`로 합을 모으고 `bincount`로 나눈 개수로 나누면 for 루프 없이 한 번에 구할 수 있습니다."
+  },
+  {
+   "order": 8,
+   "title": "비교용 옵티마이저 변형",
+   "description": "같은 아이디어를 다른 업데이트 규칙에 이식한 ClusterCoupledSGD와 ClusterCoupledRMSProp은 파라미터 값만으로 K-means 클러스터링하고 클러스터 평균 gradient를 섞지만, Adam 버전과 달리 burn-in이나 활성 행 마스킹이 없습니다. Lamb은 trust ratio로 layer-wise 학습률을 조정하는 베이스라인입니다. 7단계의 Adam 버전과 나란히 보면 burn-in·EMA-grad·마스킹이 어떤 차이를 만드는지 실험 설계의 축이 드러납니다.",
+   "nodeIds": [
+    "class:code/optimizers.py:ClusterCoupledSGD",
+    "class:code/optimizers.py:ClusterCoupledRMSProp",
+    "class:code/optimizers.py:Lamb"
+   ]
+  },
+  {
+   "order": 9,
+   "title": "평가 지표와 실험 기록",
+   "description": "Procedure.Test는 테스트 사용자마다 학습 아이템을 제외한 top-K 추천을 만들고, test_one_batch에서 Recall/Precision/NDCG/HR을 계산한 뒤 직전 평가 대비 recall 변화량/Δepoch로 convergence speed와 recall 분산을 산출합니다. main.py는 이 결과를 MetricsRecorder로 에포크별 CSV에 남기고, notebook.ipynb의 plot_metrics가 여러 CSV를 겹쳐 Adam vs CCA 학습 곡선을 비교합니다. 주의할 점: HitRatio_ATk는 배치의 처음 k개 행을 합산하는 알려진 문제가 있어 HR 값은 사용자별 hit ratio로 해석하면 안 됩니다.",
+   "nodeIds": [
+    "function:code/Procedure.py:Test",
+    "function:code/Procedure.py:test_one_batch",
+    "class:code/utils.py:MetricsRecorder",
+    "function:code/utils.py:HitRatio_ATk",
+    "file:notebook.ipynb"
+   ]
+  }
+ ]
+}

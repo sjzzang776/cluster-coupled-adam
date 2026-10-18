@@ -1,0 +1,146 @@
+{
+  "name": "25-fall-recommender",
+  "description": "LightGCN 기반 추천 모델 위에서 Cluster-Coupled Adam/SGD/RMSProp 등 클러스터 결합형 옵티마이저를 개발·실험하는 프로젝트로, optimizer, warm-up, reclustering interval 등을 CLI 옵션으로 제어하고 Recall/Precision/NDCG/HR 및 수렴 속도로 평가합니다.",
+  "languages": [
+    "cpp",
+    "ipynb",
+    "markdown",
+    "python",
+    "txt"
+  ],
+  "frameworks": [
+    "PyTorch"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 41,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "code/Procedure.py",
+      "language": "python",
+      "sizeLines": 190,
+      "fileCategory": "code"
+    },
+    {
+      "path": "code/dataloader.py",
+      "language": "python",
+      "sizeLines": 409,
+      "fileCategory": "code"
+    },
+    {
+      "path": "code/main.py",
+      "language": "python",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": "code/model.py",
+      "language": "python",
+      "sizeLines": 215,
+      "fileCategory": "code"
+    },
+    {
+      "path": "code/optimizers.py",
+      "language": "python",
+      "sizeLines": 560,
+      "fileCategory": "code"
+    },
+    {
+      "path": "code/parse.py",
+      "language": "python",
+      "sizeLines": 85,
+      "fileCategory": "code"
+    },
+    {
+      "path": "code/register.py",
+      "language": "python",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "code/sources/sampling.cpp",
+      "language": "cpp",
+      "sizeLines": 105,
+      "fileCategory": "code"
+    },
+    {
+      "path": "code/utils.py",
+      "language": "python",
+      "sizeLines": 481,
+      "fileCategory": "code"
+    },
+    {
+      "path": "code/world.py",
+      "language": "python",
+      "sizeLines": 103,
+      "fileCategory": "code"
+    },
+    {
+      "path": "data/gowalla/README.md",
+      "language": "markdown",
+      "sizeLines": 2,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "notebook.ipynb",
+      "language": "ipynb",
+      "sizeLines": 232,
+      "fileCategory": "code"
+    },
+    {
+      "path": "requirements.txt",
+      "language": "txt",
+      "sizeLines": 6,
+      "fileCategory": "docs"
+    }
+  ],
+  "totalFiles": 14,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "small",
+  "importMap": {
+    "README.md": [],
+    "code/Procedure.py": [
+      "code/dataloader.py",
+      "code/model.py",
+      "code/utils.py",
+      "code/world.py"
+    ],
+    "code/dataloader.py": [
+      "code/world.py"
+    ],
+    "code/main.py": [
+      "code/Procedure.py",
+      "code/register.py",
+      "code/utils.py",
+      "code/world.py"
+    ],
+    "code/model.py": [
+      "code/dataloader.py",
+      "code/world.py"
+    ],
+    "code/optimizers.py": [],
+    "code/parse.py": [],
+    "code/register.py": [
+      "code/dataloader.py",
+      "code/model.py",
+      "code/utils.py",
+      "code/world.py"
+    ],
+    "code/sources/sampling.cpp": [],
+    "code/utils.py": [
+      "code/dataloader.py",
+      "code/model.py",
+      "code/optimizers.py",
+      "code/world.py"
+    ],
+    "code/world.py": [
+      "code/parse.py"
+    ],
+    "data/gowalla/README.md": [],
+    "notebook.ipynb": [],
+    "requirements.txt": []
+  }
+}

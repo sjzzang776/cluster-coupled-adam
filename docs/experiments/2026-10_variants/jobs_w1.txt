@@ -1,0 +1,9 @@
+shrink 2020 --optimizer cluster --alpha 1.0 --mix_mode shrink
+adam 2020 --optimizer adam
+cca 2020 --optimizer cluster --alpha 0.25
+freq 2020 --optimizer cluster --alpha 0.5 --alpha_n0 20
+vshare 2020 --optimizer cluster --alpha 1.0 --mix_mode vshare
+dirnorm 2020 --optimizer cluster --alpha 0.25 --mix_mode dirnorm
+adam 2021 --optimizer adam
+cca 2021 --optimizer cluster --alpha 0.25
+freq 2021 --optimizer cluster --alpha 0.5 --alpha_n0 20
